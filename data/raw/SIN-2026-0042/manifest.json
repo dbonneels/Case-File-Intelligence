@@ -1,0 +1,92 @@
+{
+  "dataset_name": "Dossier assurance habitation fictif — dégât des eaux",
+  "dataset_version": "1.0",
+  "claim_id": "SIN-2026-0042",
+  "synthetic": true,
+  "language": "fr",
+  "currency": "EUR",
+  "claim_type": "water_damage",
+  "insured": {
+    "name": "Jean Martin",
+    "address": "12 rue des Tilleuls, 37000 Tours, France",
+    "email": "jean.martin@example.invalid",
+    "phone": "02 47 00 00 00"
+  },
+  "policy_id": "HAB-2024-01852",
+  "declared_loss_date": "2026-10-12",
+  "expert_report_loss_date": "2026-10-13",
+  "estimated_amount_insured_ttc": 8450.0,
+  "expert_estimate_ttc": 6300.0,
+  "quotes_ttc": [
+    4301.0,
+    6875.0
+  ],
+  "expected_documents": [
+    "declaration",
+    "insurance_policy",
+    "premium_payment",
+    "expert_report",
+    "repair_quote",
+    "plumber_intervention",
+    "correspondence",
+    "final_repair_invoice",
+    "general_policy_conditions"
+  ],
+  "received_documents": [
+    "01_declaration_sinistre.pdf",
+    "02_conditions_particulieres_contrat.pdf",
+    "03_releve_cotisations.pdf",
+    "04_rapport_expertise.pdf",
+    "05_devis_reparation_alpha.pdf",
+    "06_devis_reparation_bati_plus.pdf",
+    "07_compte_rendu_plombier.pdf",
+    "08_echanges_courriels.pdf",
+    "09_note_instruction_gestionnaire.pdf"
+  ],
+  "missing_documents": [
+    "final_repair_invoice",
+    "general_policy_conditions"
+  ],
+  "known_inconsistencies": [
+    {
+      "field": "loss_date",
+      "values": [
+        {
+          "document": "01_declaration_sinistre.pdf",
+          "value": "2026-10-12"
+        },
+        {
+          "document": "04_rapport_expertise.pdf",
+          "value": "2026-10-13"
+        }
+      ]
+    },
+    {
+      "field": "premium_status",
+      "value": "The 2026-07-01 installment is marked unpaid in the statement; contract suspension or termination is not established."
+    },
+    {
+      "field": "damage_amount",
+      "values": [
+        {
+          "document": "01_declaration_sinistre.pdf",
+          "value_ttc": 8450.0
+        },
+        {
+          "document": "04_rapport_expertise.pdf",
+          "value_ttc": 6300.0
+        },
+        {
+          "document": "05_devis_reparation_alpha.pdf",
+          "value_ttc": 4301.0
+        },
+        {
+          "document": "06_devis_reparation_bati_plus.pdf",
+          "value_ttc": 6875.0
+        }
+      ]
+    }
+  ],
+  "recommended_case_state": "INCOMPLETE_AND_CONFLICTING",
+  "important_notice": "Synthetic training data only. Not legal advice, not a real insurance contract, and not evidence of a real claim."
+}
