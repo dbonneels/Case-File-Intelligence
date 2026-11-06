@@ -11,3 +11,7 @@ wheels/
 
 # Windows download zone metadata
 *Zone.Identifier
+
+.env
+storage/
+data/claims/**/.DS_Store
