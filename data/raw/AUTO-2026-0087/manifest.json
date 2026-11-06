@@ -1,0 +1,77 @@
+{
+  "dataset_name": "Dossier automobile fictif — collision avec dommages matériels",
+  "version": "1.0",
+  "synthetic": true,
+  "language": "fr",
+  "case_id": "AUTO-2026-0087",
+  "insured": {
+    "name": "Paul Durand",
+    "address": "18 rue des Acacias, 44000 Nantes, France",
+    "email": "paul.durand@example.invalid"
+  },
+  "policy_id": "AUTO-2025-04192",
+  "insured_vehicle": {
+    "make_model": "Renault Mégane IV 1.3 TCe",
+    "registration": "AB-123-CD",
+    "fictional": true
+  },
+  "third_party": {
+    "name": "Sophie Leroy",
+    "vehicle": "Peugeot 208",
+    "registration": "XY-456-ZT",
+    "fictional": true
+  },
+  "accident_date": "2026-11-03",
+  "accident_time": "17:45",
+  "location": "Intersection rue des Acacias / boulevard des Écoles, Nantes",
+  "amounts_ttc": {
+    "insured_estimate": 6800,
+    "expert_provisional": 6600,
+    "garage_quote": 7420,
+    "towing": 185
+  },
+  "deductible_dommages_tous_accidents": 450,
+  "received_documents": [
+    "01_declaration_accident.pdf",
+    "02_conditions_particulieres.pdf",
+    "03_attestation_assurance.pdf",
+    "04_constat_amiable_reconstitue.pdf",
+    "05_compte_rendu_conducteur.pdf",
+    "06_rapport_expertise.pdf",
+    "07_devis_garage.pdf",
+    "08_assistance_remorquage.pdf",
+    "09_echanges_courriels.pdf",
+    "10_note_instruction_sinistre.pdf"
+  ],
+  "missing_documents": [
+    "constat_amiable_officiel_signe",
+    "photographies_originales",
+    "conditions_generales_CG-AUTO-2025-v2",
+    "ordre_reparation_et_facture_finale"
+  ],
+  "known_inconsistencies": [
+    {
+      "field": "circonstances",
+      "issue": "Les versions des conducteurs divergent sur l'engagement du véhicule B et la priorité."
+    },
+    {
+      "field": "montants_ttc",
+      "values": [
+        6800,
+        6600,
+        7420
+      ],
+      "sources": [
+        "01_declaration_accident.pdf",
+        "06_rapport_expertise.pdf",
+        "07_devis_garage.pdf"
+      ]
+    },
+    {
+      "field": "perimetre_reparations",
+      "issue": "L'expertise est provisoire ; le devis inclut des calibrages et contrôles complémentaires."
+    }
+  ],
+  "recommended_case_state": "INCOMPLETE_AND_CONFLICTING",
+  "notice": "Toutes les personnes, adresses, immatriculations, références, sociétés et circonstances sont inventées. Aucun document n'est officiel. Aucun avis juridique ni conclusion sur la responsabilité n'est fourni."
+}
