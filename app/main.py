@@ -8,7 +8,7 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from groq import Groq
 from pydantic import BaseModel, Field
 
@@ -59,6 +59,10 @@ app = FastAPI(
 def manifest_for(claim_id: str) -> dict:
     return load_manifest(claim_dir(claim_id))
 
+
+@app.get("/")
+def root() -> RedirectResponse:
+    return RedirectResponse(url="/case-file-intelligence-demo/ui")
 
 @app.get("/health")
 def health() -> dict:
