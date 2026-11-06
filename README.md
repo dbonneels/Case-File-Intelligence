@@ -1,6 +1,6 @@
 # Case-File Intelligence — démonstration RAG assurance
 
-Démonstrateur local combinant **Docling**, **FAISS** et **FastAPI** pour analyser des dossiers d'assurance synthétiques (dégât des eaux et accident automobile).
+Démonstration locale combinant **Docling**, **FAISS** et **FastAPI** pour analyser des dossiers d'assurance synthétiques (dégât des eaux et accident automobile).
 
 ## Démarrage
 
