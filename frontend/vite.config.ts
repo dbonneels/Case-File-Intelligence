@@ -6,7 +6,7 @@ const backend = "http://127.0.0.1:8000";
 
 export default defineConfig({
   server: {
-    host: "localhost",
+    host: "::",
     port: 5173,
     https: {
       key: fs.readFileSync(path.resolve(__dirname, "certs/localhost-key.pem")),
