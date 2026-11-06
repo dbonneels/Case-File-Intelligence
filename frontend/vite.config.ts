@@ -22,6 +22,11 @@ export default defineConfig({
       "/health": backend,
       "/docs": backend,
       "/openapi.json": backend,
+      "/giec-chat-demo": {
+        target: "http://127.0.0.1:8501",
+        changeOrigin: true,
+        ws: true,
+      },
     },
   },
 });
