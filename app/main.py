@@ -163,11 +163,11 @@ def ui() -> str:
     </label>
     <p><textarea id="question" placeholder="Question..."></textarea></p>
     <button onclick="ask()">Demander</button>
-    <button onclick="validate()">Vérifier le dossier</button>
+    <button id="validate-btn" onclick="toggleValidation()">Vérifier le dossier</button>
   </div>
   <div class="card" id="response-card" style="display:none;"><h2>Réponse</h2><pre id="answer"></pre></div>
-  <div class="card"><h2>Citations</h2><pre id="citations"></pre></div>
-  <div class="card"><h2>Validation</h2><pre id="validation"></pre></div>
+  <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
+  <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><pre id="validation"></pre></div>
   <div class="card" id="anomalies-card">
     <h2>Anomalies intentionnelles à détecter</h2>
     <p>Cette démonstration détecte et signale notamment les anomalies suivantes :</p>
@@ -232,6 +232,17 @@ def ui() -> str:
       document.getElementById('answer').textContent = data.answer || JSON.stringify(data, null, 2);
       document.getElementById('citations').textContent = JSON.stringify(data.citations || [], null, 2);
        document.getElementById('response-card').style.display = 'block';
+       document.getElementById('citations-card').style.display = 'block';
+    }
+    function toggleValidation() {
+      const card = document.getElementById('validation-card');
+      const btn = document.getElementById('validate-btn');
+      if (card.style.display === 'block') {
+        card.style.display = 'none';
+        btn.textContent = 'Vérifier le dossier';
+      } else {
+        validate();
+      }
     }
     async function validate() {
       const claimId = document.getElementById('claim').value;
@@ -253,6 +264,8 @@ def ui() -> str:
       lines.push('');
       lines.push(JSON.stringify(data, null, 2));
       document.getElementById('validation').textContent = lines.join('\\n');
+       document.getElementById('validation-card').style.display = 'block';
+       document.getElementById('validate-btn').textContent = 'Masquer la validation';
     }
     loadClaims();
   </script>
