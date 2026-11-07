@@ -167,7 +167,7 @@ def ui() -> str:
   </div>
   <div class="card" id="response-card" style="display:none;"><h2>Réponse</h2><pre id="answer"></pre></div>
   <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
-  <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><pre id="validation"></pre></div>
+  <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div><button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button><pre id="validation" style="display:none;"></pre></div>
   <div class="card" id="anomalies-card">
     <h2>Anomalies intentionnelles à détecter</h2>
     <p>Cette démonstration détecte et signale notamment les anomalies suivantes :</p>
@@ -234,6 +234,17 @@ def ui() -> str:
        document.getElementById('response-card').style.display = 'block';
        document.getElementById('citations-card').style.display = 'block';
     }
+    function toggleValidationDetails() {
+      const pre = document.getElementById('validation');
+      const btn = document.getElementById('details-btn');
+      if (pre.style.display === 'block') {
+        pre.style.display = 'none';
+        btn.textContent = 'Afficher les détails';
+      } else {
+        pre.style.display = 'block';
+        btn.textContent = 'Masquer les détails';
+      }
+    }
     function toggleValidation() {
       const card = document.getElementById('validation-card');
       const btn = document.getElementById('validate-btn');
@@ -261,9 +272,8 @@ def ui() -> str:
       } else {
         lines.push('Anomalies détectées : aucune');
       }
-      lines.push('');
-      lines.push(JSON.stringify(data, null, 2));
-      document.getElementById('validation').textContent = lines.join('\\n');
+      document.getElementById('validation-summary').textContent = lines.join('\\n');
+      document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
        document.getElementById('validation-card').style.display = 'block';
        document.getElementById('validate-btn').textContent = 'Masquer la validation';
     }
