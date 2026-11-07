@@ -29,7 +29,7 @@ uv run pytest -q
 - Détection déterministe des incohérences (dates, montants, cotisation, versions des conducteurs).
 - Recherche vectorielle FAISS avec embeddings BGE-M3.
 - Réponses LLM avec citations `fichier, page`.
-- Page HTML minimale servie par FastAPI.
+- Interface HTML interactive servie par FastAPI : question/réponse, citations, validation avec synthèse et détails JSON masqués par défaut, anomalies propres au dossier sélectionné.
 
 ## Avertissement
 Données entièrement fictives. Aucune valeur contractuelle, juridique ou probante.
