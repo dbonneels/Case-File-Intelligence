@@ -1,9 +1,23 @@
-"""Build the complete search index and validation data for all claim files."""
+"""Build the complete search index and validation data for all claim files.
 
+Ce script automatise les étapes suivantes :
+1. Découvrir les dossiers de sinistres.
+2. Lire les documents PDF.
+3. Classifier les documents.
+4. Extraire les métadonnées.
+5. Découper les documents en chunks.
+6. Enregistrer les données dans la base de données.
+7. Détecter les incohérences.
+8. Détecter les documents manquants.
+9. Construire l'index FAISS.
+"""
+
+# imports de Python
 import logging
 from pathlib import Path
 from typing import Any
 
+# import de mes propres modules
 from app.database import (
     init_schema,
     replace_chunks,
@@ -31,12 +45,17 @@ LOGGER = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s: %(message)s")
 
 # Location of source claim folders and local storage artifacts.
-DATA_ROOT = Path("data/claims")
-STORAGE_ROOT = Path("storage")
+DATA_ROOT = Path("data/claims")  # Répertoire contenant les dossiers d'assurance.
+STORAGE_ROOT = Path(
+    "storage"
+)  # Répertoire dans lequel l'application conserve les résultats intermédiaires.
 
 
 def claim_id_from_manifest(manifest: dict[str, Any], folder_name: str) -> str:
-    """Resolve the claim id from manifest fields, falling back to folder name."""
+    """Resolve the claim id from manifest fields, falling back to folder name.
+    1. Chercher claim_id.
+    2. Si absent ou vide, chercher case_id.
+    3. Si absent ou vide, utiliser le nom du dossier."""
     return manifest.get("claim_id") or manifest.get("case_id") or folder_name
 
 
@@ -78,10 +97,15 @@ def process_claim(claim_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str,
             document=document,
             claim_id=claim_id,
             file_name=pdf_path.name,
-            doc_type="unknown",
+            doc_type="unknown",  # on ne connaît pas encore la classification définitive du document.
         )
-        block_dicts = blocks_to_json(raw_blocks)
-        full_text = "\n".join(block["text"] for block in block_dicts)
+
+        block_dicts = blocks_to_json(
+            raw_blocks
+        )  # conversion des blocs extraits en dictionnaires Python compatibles avec une sérialisation JSON.
+        full_text = "\n".join(
+            block["text"] for block in block_dicts
+        )  # récupère le texte de chaque bloc et rassemble les textes dans une seule chaîne de caractères.
         doc_type = classify_document(pdf_path.name, full_text)
 
         # Rewrite block doc_type after classification.
