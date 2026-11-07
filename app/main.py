@@ -1,6 +1,5 @@
 """FastAPI application for insurance claim RAG and validation."""
 
-from __future__ import annotations
 
 import os
 from contextlib import asynccontextmanager

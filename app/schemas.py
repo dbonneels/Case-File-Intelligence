@@ -1,6 +1,5 @@
 """Pydantic schemas for the FastAPI endpoints."""
 
-from __future__ import annotations
 
 from typing import Any
 

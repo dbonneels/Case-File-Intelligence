@@ -1,6 +1,5 @@
 """Lightweight structured metadata extraction from claim documents."""
 
-from __future__ import annotations
 
 import json
 import re

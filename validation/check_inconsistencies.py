@@ -1,8 +1,8 @@
 """Deterministic inconsistency checks for claim files."""
 
-from __future__ import annotations
 
 import re
+from pathlib import Path
 from typing import Any
 
 from app.database import get_chunks

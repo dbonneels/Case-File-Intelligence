@@ -1,6 +1,5 @@
 """Document classification for insurance claim files."""
 
-from __future__ import annotations
 
 import json
 import re

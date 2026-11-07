@@ -1,6 +1,5 @@
 """Completeness checks for insurance claim files."""
 
-from __future__ import annotations
 
 from pathlib import Path
 from typing import Any

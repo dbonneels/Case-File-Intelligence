@@ -4,7 +4,6 @@ The functions here convert one PDF into an ordered list of text blocks.
 Each block keeps enough metadata to cite the source file and exact PDF page.
 """
 
-from __future__ import annotations
 
 import json
 import logging

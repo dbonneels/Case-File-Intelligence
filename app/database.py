@@ -1,6 +1,5 @@
 """SQLite helpers for claim metadata and validation findings."""
 
-from __future__ import annotations
 
 import json
 import sqlite3

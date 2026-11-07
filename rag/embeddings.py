@@ -1,6 +1,5 @@
 """Embedding helpers based on BAAI/bge-m3."""
 
-from __future__ import annotations
 
 from typing import Sequence
 
