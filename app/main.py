@@ -18,6 +18,7 @@ from ingestion.classify_documents import load_manifest
 from rag.retrieval import search
 from validation.check_inconsistencies import find_inconsistencies
 from validation.check_missing_documents import find_missing_documents
+from validation.case_state import compute_case_state
 
 load_dotenv()
 DATA_ROOT = Path("data/claims")
@@ -389,7 +390,12 @@ def validate_claim(claim_id: str) -> dict:
     manifest = manifest_for(claim_id)
     missing = find_missing_documents(claim_id, directory, manifest)
     inconsistencies = find_inconsistencies(claim_id, directory, manifest)
-    state = manifest.get("recommended_case_state") or manifest.get("recommended_state") or "UNKNOWN"
+    docs = [_normalize_document(row) for row in get_documents(claim_id)]
+    state = compute_case_state(
+        missing_documents=missing["missing"],
+        inconsistencies=inconsistencies,
+        documents=docs,
+    )
     return {
         "claim_id": claim_id,
         "case_state": state,
@@ -484,6 +490,12 @@ def dashboard(claim_id: str) -> dict:
     chunks = get_chunks(claim_id)
     missing = find_missing_documents(claim_id, directory, manifest)
     inconsistencies = find_inconsistencies(claim_id, directory, manifest)
+    normalized_docs = [_normalize_document(row) for row in docs]
+    case_state = compute_case_state(
+        missing_documents=missing["missing"],
+        inconsistencies=inconsistencies,
+        documents=normalized_docs,
+    )
     return {
         "claim_id": claim_id,
         "claim_type": manifest.get("claim_type"),
@@ -491,5 +503,5 @@ def dashboard(claim_id: str) -> dict:
         "chunk_count": len(chunks),
         "missing_count": len(missing["missing"]),
         "inconsistency_count": len(inconsistencies),
-        "case_state": manifest.get("recommended_case_state") or manifest.get("recommended_state"),
+        "case_state": case_state,
     }
