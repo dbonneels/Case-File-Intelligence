@@ -159,10 +159,21 @@ def ui() -> str:
       white-space: pre-wrap;
       overflow-x: auto;
     }
-    .anomaly-category {
+    .anomaly-label {
       font-style: italic;
       color: #60a5fa;
       font-size: smaller;
+    }
+    .anomaly-category {
+      display: inline-block;
+      margin-left: 0.25rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      font-style: normal;
+      color: #991b1b;
+      background: #fee2e2;
     }
     .doc-status {
       display: inline-block;
@@ -199,31 +210,30 @@ def ui() -> str:
   </div>
   <div class="card" id="anomalies-card">
     <h2>Anomalies intentionnelles à détecter</h2>
-    <p>Cette démonstration détecte et signale notamment les anomalies suivantes :</p>
+    <p>Cette démonstration détecte et signale les catégories d'anomalies suivantes : <span class="anomaly-category">missing_documents</span>, <span class="anomaly-category">date_conflict</span>, <span class="anomaly-category">premium_status</span>, <span class="anomaly-category">amount_conflict</span>, <span class="anomaly-category">statement_conflict</span>, <span class="anomaly-category">repair_scope</span></p>
     <div id="anomalies-SIN-2026-0042" class="anomaly-block" style="display:none;">
       <h3>Dossier SIN-2026-0042 (dégât des eaux)</h3>
       <ul>
-        <li>Conflit de date de sinistre : 12/10/2026 dans la déclaration et la fiche plombier, 13/10/2026 dans le rapport d'expertise (<span class="anomaly-category">date_conflict</span>).</li>
-        <li>Échéance de cotisation du 01/07/2026 marquée impayée dans le relevé de cotisations (<span class="anomaly-category">premium_status</span>).</li>
-        <li>Écarts de montants TTC : 8 450 €, 6 300 €, 4 301 € et 6 875 € (<span class="anomaly-category">amount_conflict</span>).</li>
-        <li>Pièce manquante : facture finale de réparation (final_repair_invoice) (<span class="anomaly-category">missing_documents</span>).</li>
-      <li>Pièce manquante : conditions générales complètes (general_policy_conditions) (<span class="anomaly-category">missing_documents</span>).</li>
+        <li>Conflit de date de sinistre : 12/10/2026 dans la déclaration et la fiche plombier, 13/10/2026 dans le rapport d'expertise (<span class="anomaly-label">date_conflict</span>)</li>
+        <li>Échéance de cotisation du 01/07/2026 marquée impayée dans le relevé de cotisations (<span class="anomaly-label">premium_status</span>)</li>
+        <li>Écarts de montants TTC : 8 450 €, 6 300 €, 4 301 € et 6 875 € (<span class="anomaly-label">amount_conflict</span>)</li>
+        <li>Pièce manquante : facture finale de réparation (final_repair_invoice) (<span class="anomaly-label">missing_documents</span>)</li>
+      <li>Pièce manquante : conditions générales complètes (general_policy_conditions) (<span class="anomaly-label">missing_documents</span>)</li>
       </ul>
     </div>
     <div id="anomalies-AUTO-2026-0087" class="anomaly-block" style="display:none;">
       <h3>Dossier AUTO-2026-0087 (accident automobile)</h3>
       <ul>
-        <li>Pièce manquante : constat amiable officiel signé (constat_amiable_officiel_signe) (<span class="anomaly-category">missing_documents</span>).</li>
-        <li>Pièce manquante : photographies originales (photographies_originales) (<span class="anomaly-category">missing_documents</span>).</li>
-        <li>Pièce manquante : conditions générales complètes (conditions_generales_CG-AUTO-2025-v2) (<span class="anomaly-category">missing_documents</span>).</li>
-        <li>Pièce manquante : ordre de réparation et facture finale (ordre_reparation_et_facture_finale) (<span class="anomaly-category">missing_documents</span>).</li>
-        <li>Versions divergentes des conducteurs sur la priorité et l'engagement du véhicule B (<span class="anomaly-category">statement_conflict</span>).</li>
-        <li>Montants TTC divergents : 6 800 €, 6 600 € (provisoire) et 7 420 € (<span class="anomaly-category">amount_conflict</span>).</li>
-        <li>Périmètres de réparation potentiellement différents : expertise provisoire et devis incluant des calibrages/contrôles complémentaires (<span class="anomaly-category">repair_scope</span>).</li>
+        <li>Pièce manquante : constat amiable officiel signé (constat_amiable_officiel_signe) (<span class="anomaly-label">missing_documents</span>)</li>
+        <li>Pièce manquante : photographies originales (photographies_originales) (<span class="anomaly-label">missing_documents</span>)</li>
+        <li>Pièce manquante : conditions générales complètes (conditions_generales_CG-AUTO-2025-v2) (<span class="anomaly-label">missing_documents</span>)</li>
+        <li>Pièce manquante : ordre de réparation et facture finale (ordre_reparation_et_facture_finale) (<span class="anomaly-label">missing_documents</span>)</li>
+        <li>Versions divergentes des conducteurs sur la priorité et l'engagement du véhicule B (<span class="anomaly-label">statement_conflict</span>)</li>
+        <li>Montants TTC divergents : 6 800 €, 6 600 € (provisoire) et 7 420 € (<span class="anomaly-label">amount_conflict</span>)</li>
+        <li>Périmètres de réparation potentiellement différents : expertise provisoire et devis incluant des calibrages/contrôles complémentaires (<span class="anomaly-label">repair_scope</span>)</li>
       </ul>
 
     </div>
-    <p id="anomaly-categories">Catégories d'anomalies détectées : <span class="anomaly-category">missing_documents</span>, <span class="anomaly-category">date_conflict</span>, <span class="anomaly-category">premium_status</span>, <span class="anomaly-category">amount_conflict</span>, <span class="anomaly-category">statement_conflict</span>, <span class="anomaly-category">repair_scope</span>.</p>
   </div>
   <script>
     async function loadClaims() {
