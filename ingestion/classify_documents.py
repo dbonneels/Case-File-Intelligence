@@ -22,6 +22,11 @@ CANONICAL_TYPE_KEYWORDS: list[tuple[str, list[str]]] = [
     ("accident_report", ["constat amiable", "constat"]),
     ("driver_statement", ["compte rendu", "conducteur"]),
     ("assistance", ["assistance", "remorquage"]),
+    ("final_invoice", ["facture finale", "facture définitive", "facture de réparation", "final invoice"]),
+    ("repair_order", ["ordre de réparation", "ordre réparation", "bon de réparation", "repair order"]),
+    ("original_photos", ["photographies originales", "photos originales", "photo originale", "original photos"]),
+    ("damage_photos", ["photographies des dégâts", "photos des dégâts", "photos dommages", "damage photos"]),
+    ("general_policy_conditions", ["conditions générales", "conditions generales", "cg-auto", "cg auto", "general policy conditions"]),
 ]
 
 FILENAME_HINTS: list[tuple[str, str]] = [
@@ -37,6 +42,11 @@ FILENAME_HINTS: list[tuple[str, str]] = [
     ("constat_amiable", "accident_report"),
     ("compte_rendu_conducteur", "driver_statement"),
     ("assistance_remorquage", "assistance"),
+    ("facture_finale", "final_invoice"),
+    ("ordre_reparation", "repair_order"),
+    ("photographies_originales", "original_photos"),
+    ("photos_degats", "damage_photos"),
+    ("conditions_generales", "general_policy_conditions"),
 ]
 
 

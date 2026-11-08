@@ -371,6 +371,9 @@ def ui() -> str:
       } else {
         items.push('Pièce manquante : aucune');
       }
+      if (Array.isArray(data.optional_missing_documents) && data.optional_missing_documents.length) {
+        data.optional_missing_documents.forEach(item => items.push('Pièce utile manquante : ' + esc(item) + redBadge('optional_documents')));
+      }
       if (Array.isArray(data.inconsistencies) && data.inconsistencies.length) {
         data.inconsistencies.forEach(item => items.push(esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
       } else {
@@ -474,6 +477,7 @@ def validate_claim(claim_id: str) -> dict:
         "claim_id": claim_id,
         "case_state": state,
         "missing_documents": missing["missing"],
+        "optional_missing_documents": missing.get("optional_missing_documents", []),
         "missing_details": missing,
         "inconsistencies": inconsistencies,
         "finding_count": len(inconsistencies) + (1 if missing["missing"] else 0),

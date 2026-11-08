@@ -73,5 +73,15 @@
     }
   ],
   "recommended_case_state": "INCOMPLETE_AND_CONFLICTING",
-  "notice": "Toutes les personnes, adresses, immatriculations, références, sociétés et circonstances sont inventées. Aucun document n'est officiel. Aucun avis juridique ni conclusion sur la responsabilité n'est fourni."
+  "notice": "Toutes les personnes, adresses, immatriculations, références, sociétés et circonstances sont inventées. Aucun document n'est officiel. Aucun avis juridique ni conclusion sur la responsabilité n'est fourni.",
+  "claim_type": "auto_accident",
+  "expected_documents": [
+    "accident_report",
+    "declaration",
+    "expert_report",
+    "final_invoice",
+    "insurance_policy",
+    "repair_order",
+    "repair_quote"
+  ]
 }
