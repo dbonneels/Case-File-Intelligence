@@ -362,19 +362,20 @@ def ui() -> str:
       function redBadge(category) {
         return ' <span class="anomaly-category">' + esc(category) + '</span>';
       }
-      const lines = [];
+      const items = [];
       if (Array.isArray(data.missing_documents) && data.missing_documents.length) {
-        data.missing_documents.forEach(item => lines.push('• Pièce manquante : ' + esc(item) + redBadge('missing_documents')));
+        data.missing_documents.forEach(item => items.push('Pièce manquante : ' + esc(item) + redBadge('missing_documents')));
       } else {
-        lines.push('• Pièce manquante : aucune');
+        items.push('Pièce manquante : aucune');
       }
       if (Array.isArray(data.inconsistencies) && data.inconsistencies.length) {
-        data.inconsistencies.forEach(item => lines.push('• ' + esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
+        data.inconsistencies.forEach(item => items.push(esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
       } else {
-        lines.push('• Anomalies détectées : aucune');
+        items.push('Anomalies détectées : aucune');
       }
       document.getElementById('validation-state').textContent = 'État du dossier : ' + (data.case_state || 'UNKNOWN');
-      document.getElementById('validation-summary').innerHTML = lines.join('\\n');
+      const list = items.map(item => '<li>' + item + '</li>').join('');
+      document.getElementById('validation-summary').innerHTML = '<ul style="margin:0;padding-left:1.2rem;">' + list + '</ul>';
       document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
        document.getElementById('validation-card').style.display = 'block';
        document.getElementById('validate-btn').textContent = 'Masquer la validation';
