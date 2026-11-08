@@ -264,7 +264,14 @@ def ui() -> str:
         option.textContent = claimLabels[claim.claim_id] || claim.claim_id;
         select.appendChild(option);
       });
-      select.addEventListener('change', () => { updateAnomalies(); loadDocuments(); });
+      select.addEventListener('change', () => {
+        updateAnomalies();
+        loadDocuments();
+        const validationCard = document.getElementById('validation-card');
+        if (validationCard && validationCard.style.display === 'block') {
+          validate();
+        }
+      });
       updateAnomalies();
       loadDocuments();
     }
