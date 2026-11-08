@@ -31,7 +31,7 @@ from rag.retrieval import build_index
 from validation.check_inconsistencies import find_inconsistencies
 from validation.check_missing_documents import find_missing_documents
 
-from ingestion.classify_documents import classify_document, load_manifest
+from ingestion.classify_documents import classify_document_details, load_manifest
 from ingestion.extract_metadata import extract_document_metadata, write_json
 from ingestion.parse_documents import PdfParser, blocks_to_json
 
@@ -106,7 +106,8 @@ def process_claim(claim_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str,
         full_text = "\n".join(
             block["text"] for block in block_dicts
         )  # récupère le texte de chaque bloc et rassemble les textes dans une seule chaîne de caractères.
-        doc_type = classify_document(pdf_path.name, full_text)
+        classification_details = classify_document_details(pdf_path.name, full_text)
+        doc_type = classification_details["doc_type"]
 
         # Rewrite block doc_type after classification.
         for block in block_dicts:
@@ -118,7 +119,8 @@ def process_claim(claim_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str,
 
         # Extract and persist lightweight document metadata.
         metadata = extract_document_metadata(
-            claim_id, pdf_path.name, doc_type, block_dicts
+            claim_id, pdf_path.name, doc_type, block_dicts,
+            classification=classification_details,
         )
         metadata_path = STORAGE_ROOT / "metadata" / claim_id / f"{pdf_path.stem}.json"
         write_json(metadata_path, metadata)
@@ -159,6 +161,39 @@ def process_claim(claim_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str,
             "details": missing_result,
         }
     ]
+    # Signal ambiguous document classifications as deterministic findings.
+    ambiguous_docs = [
+        row for row in document_rows
+        if (row.get("metadata") or {}).get("classification", {}).get("classification_status") == "ambiguous"
+    ]
+    if ambiguous_docs:
+        findings.append(
+            {
+                "category": "classification_ambiguity",
+                "severity": "medium",
+                "field": "document_classification",
+                "summary": (
+                    "Classification documentaire incertaine pour : "
+                    + ", ".join(row["file_name"] for row in ambiguous_docs)
+                ),
+                "details": {
+                    "documents": [
+                        {
+                            "file_name": row["file_name"],
+                            "doc_type": row["doc_type"],
+                            "alternative_types": (row.get("metadata") or {})
+                            .get("classification", {})
+                            .get("alternative_types", []),
+                            "scores": (row.get("metadata") or {})
+                            .get("classification", {})
+                            .get("classification_scores", {}),
+                        }
+                        for row in ambiguous_docs
+                    ],
+                },
+            }
+        )
+
     # Persist deterministic validation findings for later querying.
     replace_findings(claim_id, findings)
 

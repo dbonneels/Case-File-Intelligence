@@ -89,9 +89,12 @@ def extract_document_metadata(
     file_name: str,
     doc_type: str,
     blocks: list[dict[str, Any]],
+    classification: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     text = "\n".join(block.get("text", "") for block in blocks)
     facts = extract_keys(text, doc_type)
+    if classification:
+        facts["classification"] = classification
     return {
         "claim_id": claim_id,
         "file_name": file_name,

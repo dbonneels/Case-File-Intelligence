@@ -1,6 +1,7 @@
 """FastAPI application for insurance claim RAG and validation."""
 
 
+import json
 import os
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -32,6 +33,17 @@ def get_groq_client() -> Groq:
             raise HTTPException(status_code=500, detail="GROQ_API_KEY is not configured")
         groq_client = Groq(api_key=api_key)
     return groq_client
+
+
+
+def _normalize_document(row: dict) -> dict:
+    item = dict(row)
+    raw = item.pop("metadata_json", None)
+    try:
+        item["metadata"] = json.loads(raw) if raw else {}
+    except (TypeError, json.JSONDecodeError):
+        item["metadata"] = {}
+    return item
 
 
 def claim_dir(claim_id: str) -> Path:
@@ -149,24 +161,42 @@ def ui() -> str:
     }
     .anomaly-category {
       font-style: italic;
-      color: red;
+      color: #60a5fa;
       font-size: smaller;
     }
+    .doc-status {
+      display: inline-block;
+      margin-left: 0.5rem;
+      padding: 0.15rem 0.5rem;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    .doc-status.clear { background: #dcfce7; color: #166534; }
+    .doc-status.ambiguous { background: #fef3c7; color: #92400e; }
+    .doc-status.unknown { background: #e5e7eb; color: #374151; }
+    .doc-alternatives { color: #92400e; font-size: 0.8rem; }
   </style>
 </head>
 <body>
   <h1>Case-File Intelligence</h1>
   <div class="card">
-    <label>Dossier
-      <select id="claim"></select>
-    </label>
+    <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+      <label style="flex:0 0 auto;margin:0;">Dossier
+        <select id="claim" style="width:auto;min-width:200px;max-width:300px;"></select>
+      </label>
+      <button id="validate-btn" onclick="toggleValidation()" style="margin:0;">Vérifier le dossier</button>
+    </div>
     <p><textarea id="question" placeholder="Question..."></textarea></p>
     <button onclick="ask()">Demander</button>
-    <button id="validate-btn" onclick="toggleValidation()">Vérifier le dossier</button>
   </div>
   <div class="card" id="response-card" style="display:none;"><h2>Réponse</h2><pre id="answer"></pre></div>
   <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
   <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div><button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button><pre id="validation" style="display:none;"></pre></div>
+  <div class="card" id="documents-card">
+    <h2>Documents du dossier</h2>
+    <div id="documents" style="white-space:pre-wrap;"></div>
+  </div>
   <div class="card" id="anomalies-card">
     <h2>Anomalies intentionnelles à détecter</h2>
     <p>Cette démonstration détecte et signale notamment les anomalies suivantes :</p>
@@ -210,14 +240,34 @@ def ui() -> str:
         option.textContent = claimLabels[claim.claim_id] || claim.claim_id;
         select.appendChild(option);
       });
-      select.addEventListener('change', updateAnomalies);
+      select.addEventListener('change', () => { updateAnomalies(); loadDocuments(); });
       updateAnomalies();
+      loadDocuments();
     }
     function updateAnomalies() {
       const claimId = document.getElementById('claim').value;
       document.querySelectorAll('.anomaly-block').forEach(block => {
         block.style.display = block.id === 'anomalies-' + claimId ? 'block' : 'none';
       });
+    }
+    async function loadDocuments() {
+      const claimId = document.getElementById('claim').value;
+      const response = await fetch(`/claims/${claimId}/documents`);
+      if (!response.ok) {
+        document.getElementById('documents').textContent = 'Documents non indexés.';
+        return;
+      }
+      const docs = await response.json();
+      const lines = docs.map(doc => {
+        const cls = (doc.metadata && doc.metadata.classification) || {};
+        const status = cls.classification_status || 'clear';
+        const badge = `<span class="doc-status ${status}">${status}</span>`;
+        const alternatives = Array.isArray(cls.alternative_types) && cls.alternative_types.length
+          ? ` <span class="doc-alternatives">(alternatives : ${cls.alternative_types.join(', ')})</span>`
+          : '';
+        return `<div>${doc.file_name} — <strong>${doc.doc_type}</strong>${badge}${alternatives}</div>`;
+      });
+      document.getElementById('documents').innerHTML = lines.join('') || 'Aucun document.';
     }
     async function ask() {
       const claimId = document.getElementById('claim').value;
@@ -294,14 +344,14 @@ def list_claims() -> list[dict]:
 @app.get("/claims/{claim_id}")
 def get_claim(claim_id: str) -> dict:
     manifest = manifest_for(claim_id)
-    docs = get_documents(claim_id)
+    docs = [_normalize_document(row) for row in get_documents(claim_id)]
     return {"claim_id": claim_id, "manifest": manifest, "documents": docs}
 
 
 @app.get("/claims/{claim_id}/documents")
 def list_documents(claim_id: str) -> list[dict]:
     claim_dir(claim_id)
-    docs = get_documents(claim_id)
+    docs = [_normalize_document(row) for row in get_documents(claim_id)]
     if not docs:
         raise HTTPException(status_code=404, detail="Documents not indexed yet")
     return docs

@@ -1,25 +1,14 @@
-"""Document classification for insurance claim files.
-
-This module maps incoming claim documents to a canonical document type.
-Classification is first attempted from the file name, then falls back to a
-simple keyword count over the extracted text content.
-
-Quel est le type de chaque document PDF présent dans un dossier d'assurance ?
-"""
+"""Document classification for insurance claim files."""
 
 import json
-import re  # Normaliser les noms de fichiers avec les expressions régulières
-import unicodedata  # Supprimer les accents des noms de fichiers
+import logging
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any
 
-# Canonical document types shared by manifests and validations.
-# Each entry pairs a canonical type with the keywords that identify it.
-"""Dictionnaire de connaissances, sous la forme d'une liste de tuples.
+LOGGER = logging.getLogger(__name__)
 
-Chaque tuple contient deux éléments :
-1. Le type canonique du document.
-2. Les mots-clés permettant de reconnaître ce document."""
 CANONICAL_TYPE_KEYWORDS: list[tuple[str, list[str]]] = [
     ("declaration", ["déclaration", "declaration", "accident"]),
     ("insurance_policy", ["conditions particulières", "contrat", "police"]),
@@ -35,8 +24,6 @@ CANONICAL_TYPE_KEYWORDS: list[tuple[str, list[str]]] = [
     ("assistance", ["assistance", "remorquage"]),
 ]
 
-# Filename fragments that strongly indicate a document type.
-# The first matching fragment wins.
 FILENAME_HINTS: list[tuple[str, str]] = [
     ("declaration", "declaration"),
     ("conditions_particulieres", "insurance_policy"),
@@ -52,53 +39,14 @@ FILENAME_HINTS: list[tuple[str, str]] = [
     ("assistance_remorquage", "assistance"),
 ]
 
-""" CANONICAL_TYPE_KEYWORDS	--> Contenu du PDF
-    FILENAME_HINTS --> Nom du fichier
-"""
-
-"""
-EXPECTED_DOCUMENT_TYPES = {
-    "auto_accident": {
-        "declaration",
-        "insurance_policy",
-        "accident_report",
-        "expert_report",
-        "repair_quote",
-        "final_invoice",
-        "repair_order",
-    },
-    "home_water_damage": {
-        "declaration",
-        "insurance_policy",
-        "expert_report",
-        "repair_quote",
-        "final_invoice",
-    },
-}
-
-
-Il faut aussi prévoir les documents facultatifs, car une photo originale peut être utile sans être obligatoire.
-
-"""
-
 
 def _normalize_name(name: str) -> str:
-    """Normalize a file name to lowercase, underscore-separated tokens.
-    Normalise les noms de fichiers. Transforme différents formats de noms en une représentation standardisée."""
-    # Remove diacritics/accents before normalization.
     name = unicodedata.normalize("NFKD", name)
     name = "".join(char for char in name if not unicodedata.combining(char))
     return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
 def classify_by_filename(file_name: str) -> str | None:
-    """Classify a document from its file name when a known hint matches.
-    Returns the canonical document type, or None if no hint matches.
-    Cette fonction reçoit le nom d'un fichier.
-    Elle retourne :
-        - Le type canonique si elle trouve une correspondance.
-        - None si elle ne trouve rien.
-    """
     normalized = _normalize_name(file_name)
     for hint, doc_type in FILENAME_HINTS:
         if hint in normalized:
@@ -106,86 +54,61 @@ def classify_by_filename(file_name: str) -> str | None:
     return None
 
 
-"""
-Classify a document by counting canonical keywords in its text.
-    The type with the highest keyword match count wins. Falls back to 'unknown' when no keyword matches.
-    Fonction qui calcule un score pour chaque type de document et sélectionne celui qui obtient le meilleur score.
-
-def classify_by_text(text: str) -> str:
-        lowered = (
-        text.lower()
-    )  # On met tout le texte en minuscules pour éviter les problèmes de casse.
-    best_type = "unknown"
-    best_score = 0
-    for doc_type, keywords in CANONICAL_TYPE_KEYWORDS:
-        score = sum(
-            1 for keyword in keywords if keyword in lowered
-        )  # Pour chaque mot-clé, ajouter 1 si ce mot apparaît dans le texte.
-        if score > best_score:
-            best_score = score
-            best_type = doc_type
-    return best_type
-"""
-
-
-def classify_by_text(text: str) -> str:
-    """On compare les deux meilleurs scores.
-    - Si les scores sont différents : on conserve le type ayant le meilleur score.
-    - Si les scores sont identiques : on signale une classification ambiguë.
-    - Si aucun mot-clé n'est trouvé : on retourne unknown."""
+def classify_by_text(text: str) -> dict[str, Any]:
     lowered = text.lower()
 
-    scores = {}
-
+    scores: dict[str, int] = {}
     for doc_type, keywords in CANONICAL_TYPE_KEYWORDS:
         score = sum(1 for keyword in keywords if keyword in lowered)
         if score > 0:
             scores[doc_type] = score
 
     if not scores:
-        return "unknown"
+        return {
+            "doc_type": "unknown",
+            "classification_status": "unknown",
+            "alternative_types": [],
+            "classification_scores": {},
+        }
 
-    sorted_scores = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+    ranked = sorted(scores.items(), key=lambda item: item[1], reverse=True)
+    best_type, best_score = ranked[0]
+    alternative_types = [doc_type for doc_type, score in ranked[1:] if score >= best_score - 1]
+    status = "ambiguous" if alternative_types else "clear"
 
-    best_type, best_score = sorted_scores[0]
+    if status == "ambiguous":
+        LOGGER.warning(
+            "Ambiguous classification: %s vs %s", best_type, ", ".join(alternative_types)
+        )
 
-    # Detect ambiguity when multiple types have the same score.
-    if len(sorted_scores) > 1:
-        second_type, second_score = sorted_scores[1]
-
-        if second_score == best_score:
-            print(f"WARNING: Ambiguous classification: {best_type} / {second_type}")
-
-    return best_type
-
-
-"""Attention : cette version détecte les égalités entre les deux meilleurs scores, mais ne traite pas encore les cas où deux catégories ont des scores proches, par exemple 3 et 2.
-
-
-Une amélioration importante serait de stocker les scores et les types alternatifs dans les métadonnées du document, plutôt que de simplement afficher un avertissement avec print(). Cela permettrait à l'application de présenter une alerte dans l'interface web et de demander une validation humaine.: 
-Ne pas simplement afficher un WARNING avec print().
-
-À terme, il serait préférable de conserver l'information dans les métadonnées du document :
-{    "doc_type": "expert_report",    "classification_status": "ambiguous",    "alternative_types": ["driver_statement"],    "classification_scores": {        "expert_report": 3,        "driver_statement": 3    }}
-
+    return {
+        "doc_type": best_type,
+        "classification_status": status,
+        "alternative_types": alternative_types,
+        "classification_scores": scores,
+    }
 
 
-Cela permettra à l'application de présenter une alerte dans l'interface web et de demander une validation humaine.
-
-Dans un système d'analyse de dossiers d'assurance, une classification incertaine doit être signalée plutôt que silencieusement acceptée."""
+def classify_document_details(file_name: str, text: str = "") -> dict[str, Any]:
+    by_name = classify_by_filename(file_name)
+    if by_name:
+        return {
+            "doc_type": by_name,
+            "classification_status": "clear",
+            "alternative_types": [],
+            "classification_scores": {},
+            "method": "filename",
+        }
+    result = classify_by_text(text)
+    result["method"] = "text"
+    return result
 
 
 def classify_document(file_name: str, text: str = "") -> str:
-    """Classify a document using filename first, then content fallback.
-    Le nom du fichier est prioritaire, même si le contenu du PDF contredit ce nom. Un fichier mal nommé peut donc être mal classifié sans vérification."""
-    by_name = classify_by_filename(file_name)
-    if by_name:
-        return by_name
-    return classify_by_text(text)
+    return classify_document_details(file_name, text)["doc_type"]
 
 
 def build_claim_inventory(claim_id: str, claim_dir: Path) -> list[dict[str, Any]]:
-    """Return one inventory row per received PDF in a claim folder. Cette fonction construit l'inventaire des fichiers PDF reçus pour un sinistre."""
     rows: list[dict[str, Any]] = []
     for pdf_path in sorted(claim_dir.glob("*.pdf")):
         rows.append(
@@ -199,7 +122,6 @@ def build_claim_inventory(claim_id: str, claim_dir: Path) -> list[dict[str, Any]
 
 
 def load_manifest(claim_dir: Path) -> dict[str, Any]:
-    """Load and return the manifest.json located in a claim folder."""
     manifest_path = claim_dir / "manifest.json"
     with manifest_path.open("r", encoding="utf-8") as handle:
         return json.load(handle)
