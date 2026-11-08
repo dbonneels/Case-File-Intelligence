@@ -13,6 +13,7 @@ Ce script automatise les étapes suivantes :
 """
 
 # imports de Python
+import json
 import logging
 from pathlib import Path
 from typing import Any
@@ -30,6 +31,7 @@ from rag.chunking import chunk_blocks
 from rag.retrieval import build_index
 from validation.check_inconsistencies import find_inconsistencies
 from validation.check_missing_documents import find_missing_documents
+from validation.case_state import compute_case_state
 
 from ingestion.classify_documents import classify_document_details, load_manifest
 from ingestion.extract_metadata import extract_document_metadata, write_json
@@ -196,6 +198,19 @@ def process_claim(claim_dir: Path) -> tuple[list[dict[str, Any]], list[dict[str,
 
     # Persist deterministic validation findings for later querying.
     replace_findings(claim_id, findings)
+
+    # Calculate and persist the deterministic case state back into the manifest.
+    calculated_case_state = compute_case_state(
+        missing_documents=missing_result["missing"],
+        inconsistencies=inconsistencies,
+        documents=document_rows,
+    )
+    manifest["recommended_case_state"] = calculated_case_state
+    manifest_path = claim_dir / "manifest.json"
+    with manifest_path.open("w", encoding="utf-8") as handle:
+        json.dump(manifest, handle, ensure_ascii=False, indent=2)
+        handle.write("\n")
+    LOGGER.info("  Case state written to manifest: %s", calculated_case_state)
 
     return document_rows, all_chunks
 
