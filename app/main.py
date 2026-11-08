@@ -218,6 +218,7 @@ def ui() -> str:
   <div class="card" id="validation-card" style="display:none;">
     <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem;">
       <h2 style="margin:0;">Validation</h2>
+      <span id="validation-state-label" style="font-weight:600;color:#000000;">État du dossier : </span>
       <span id="validation-state" style="font-weight:600;color:#1d4ed8;"></span>
     </div>
     <div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div>
@@ -373,7 +374,7 @@ def ui() -> str:
       } else {
         items.push('Anomalies détectées : aucune');
       }
-      document.getElementById('validation-state').textContent = 'État du dossier : ' + (data.case_state || 'UNKNOWN');
+      document.getElementById('validation-state').textContent = (data.case_state || 'UNKNOWN');
       const list = items.map(item => '<li>' + item + '</li>').join('');
       document.getElementById('validation-summary').innerHTML = '<ul style="margin:0;padding-left:1.2rem;">' + list + '</ul>';
       document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
