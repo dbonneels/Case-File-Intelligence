@@ -379,6 +379,15 @@ def ui() -> str:
       const stateValue = document.getElementById('validation-state');
       const currentState = data.case_state || 'UNKNOWN';
       stateValue.textContent = currentState;
+      const stateTooltips = {
+        COMPLETE: "aucune pièce manquante, aucune incohérence et aucune classification ambiguë.",
+        INCOMPLETE: "des pièces manquantes, sans incohérence ni classification ambiguë.",
+        CONFLICTING: "des incohérences détectées, sans pièce manquante ni classification ambiguë.",
+        INCOMPLETE_AND_CONFLICTING: "à la fois des pièces manquantes et des incohérences.",
+        REVIEW_REQUIRED: "au moins un document a une classification ambiguë.",
+        UNKNOWN: "aucun élément fourni pour déterminer l'état."
+      };
+      stateValue.title = stateTooltips[currentState] || stateTooltips.UNKNOWN;
       const stateColors = {
         COMPLETE: { bg: '#dcfce7', color: '#166534' },
         INCOMPLETE: { bg: '#fef3c7', color: '#92400e' },
