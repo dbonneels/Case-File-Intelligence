@@ -207,7 +207,7 @@ def ui() -> str:
       <button id="validate-btn" onclick="toggleValidation()" style="margin:0;">Vérifier le dossier</button>
     </div>
     <div style="display:flex;gap:0.75rem;align-items:center;">
-      <textarea id="question" placeholder="Posez votre question sur ce dossier..." style="flex:1;min-height:80px;"></textarea
+      <textarea id="question" placeholder="Posez votre question sur ce dossier..." style="flex:1;min-height:80px;"></textarea>
       <button onclick="ask()" style="margin:0;">Demander</button>
     </div>
   </div>
