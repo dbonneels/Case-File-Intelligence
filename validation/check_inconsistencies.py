@@ -1,6 +1,5 @@
 """Deterministic inconsistency checks for claim files."""
 
-
 import re
 from pathlib import Path
 from typing import Any
@@ -57,7 +56,9 @@ def _sources(chunks: list[dict[str, Any]]) -> list[dict[str, Any]]:
     return result
 
 
-def _find_keyword_chunks(chunks: list[dict[str, Any]], keywords: tuple[str, ...]) -> list[dict[str, Any]]:
+def _find_keyword_chunks(
+    chunks: list[dict[str, Any]], keywords: tuple[str, ...]
+) -> list[dict[str, Any]]:
     result = []
     for chunk in chunks:
         lowered = _chunk_text(chunk).lower()
@@ -73,7 +74,9 @@ def _extract_ttc_amounts(text: str) -> list[float]:
         if "ttc" not in line.lower():
             continue
         for match in re.finditer(r"(\d[\d\s]*(?:,\d{1,2})?)\s*€", line):
-            raw = match.group(1).replace(" ", "").replace("\u00a0", "").replace(",", ".")
+            raw = (
+                match.group(1).replace(" ", "").replace("\u00a0", "").replace(",", ".")
+            )
             try:
                 value = float(raw)
             except ValueError:
@@ -82,8 +85,12 @@ def _extract_ttc_amounts(text: str) -> list[float]:
                 amounts.append(value)
     # Fallback for French wording "8 450,00 € TTC" where TTC follows the amount.
     if not amounts:
-        for match in re.finditer(r"(\d[\d\s]*(?:,\d{1,2})?)\s*€\s*TTC", text, re.IGNORECASE):
-            raw = match.group(1).replace(" ", "").replace("\u00a0", "").replace(",", ".")
+        for match in re.finditer(
+            r"(\d[\d\s]*(?:,\d{1,2})?)\s*€\s*TTC", text, re.IGNORECASE
+        ):
+            raw = (
+                match.group(1).replace(" ", "").replace("\u00a0", "").replace(",", ".")
+            )
             try:
                 amounts.append(float(raw))
             except ValueError:
@@ -91,14 +98,24 @@ def _extract_ttc_amounts(text: str) -> list[float]:
     return amounts
 
 
-def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any]) -> list[dict[str, Any]]:
+def find_inconsistencies(
+    claim_id: str, claim_dir: Path, manifest: dict[str, Any]
+) -> list[dict[str, Any]]:
     findings: list[dict[str, Any]] = []
     chunks = get_chunks(claim_id)
     is_auto = claim_id.startswith("AUTO")
 
     # 1. Loss date conflict for water damage claims.
-    loss_date_chunks_12 = [c for c in chunks if "12 octobre 2026" in _chunk_text(c) or "2026-10-12" in _chunk_text(c)]
-    loss_date_chunks_13 = [c for c in chunks if "13 octobre 2026" in _chunk_text(c) or "2026-10-13" in _chunk_text(c)]
+    loss_date_chunks_12 = [
+        c
+        for c in chunks
+        if "12 octobre 2026" in _chunk_text(c) or "2026-10-12" in _chunk_text(c)
+    ]
+    loss_date_chunks_13 = [
+        c
+        for c in chunks
+        if "13 octobre 2026" in _chunk_text(c) or "2026-10-13" in _chunk_text(c)
+    ]
     if loss_date_chunks_12 and loss_date_chunks_13:
         findings.append(
             {
@@ -108,8 +125,14 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
                 "summary": "Conflit de date de sinistre : 12 octobre 2026 dans certaines pièces, 13 octobre 2026 dans d'autres.",
                 "details": {
                     "values": [
-                        {"value": "2026-10-12", "sources": _sources(loss_date_chunks_12)},
-                        {"value": "2026-10-13", "sources": _sources(loss_date_chunks_13)},
+                        {
+                            "value": "2026-10-12",
+                            "sources": _sources(loss_date_chunks_12),
+                        },
+                        {
+                            "value": "2026-10-13",
+                            "sources": _sources(loss_date_chunks_13),
+                        },
                     ],
                     "note": "Conflit à vérifier dans le dossier; aucune conclusion juridique n'est tirée automatiquement.",
                 },
@@ -118,7 +141,8 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
 
     # 2. Unpaid premium mention.
     unpaid_chunks = [
-        chunk for chunk in _find_keyword_chunks(chunks, ("impay",))
+        chunk
+        for chunk in _find_keyword_chunks(chunks, ("impay",))
         if chunk.get("doc_type") == "premium_payment"
     ]
     if unpaid_chunks:
@@ -127,7 +151,7 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
                 "category": "premium_status",
                 "severity": "medium",
                 "field": "premium_payment",
-                "summary": "La relevé de cotisations mentionne une échéance impayée (01/07/2026). Suspension ou résiliation du contrat non établie.",
+                "summary": "Le relevé de cotisations mentionne une échéance impayée (01/07/2026). Suspension ou résiliation du contrat non établie.",
                 "details": {
                     "sources": _sources(unpaid_chunks),
                     "note": "Une cotisation impayée n'entraîne pas automatiquement une suspension ou une résiliation; à vérifier contractuellement.",
@@ -138,7 +162,11 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
     # 3. Damage amount conflicts.
     amount_occurrences: dict[float, list[dict[str, Any]]] = {}
     for chunk in chunks:
-        if chunk.get("doc_type") not in {"declaration", "expert_report", "repair_quote"}:
+        if chunk.get("doc_type") not in {
+            "declaration",
+            "expert_report",
+            "repair_quote",
+        }:
             continue
         for amount in _extract_ttc_amounts(_chunk_text(chunk)):
             amount_occurrences.setdefault(amount, []).append(chunk)
@@ -150,7 +178,10 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
                 "field": "damage_amount",
                 "summary": (
                     "Montants dommages/réparation divergents : "
-                    + ", ".join(f"{value:,.0f} €".replace(",", " ") for value in sorted(amount_occurrences))
+                    + ", ".join(
+                        f"{value:,.0f} €".replace(",", " ")
+                        for value in sorted(amount_occurrences)
+                    )
                 ),
                 "details": {
                     "values": [
@@ -183,7 +214,9 @@ def find_inconsistencies(claim_id: str, claim_dir: Path, manifest: dict[str, Any
             )
 
         provisional_chunks = _find_keyword_chunks(chunks, ("provisoire",))
-        scope_chunks = _find_keyword_chunks(chunks, ("calibrage", "contrôle", "controle", "complémentaire"))
+        scope_chunks = _find_keyword_chunks(
+            chunks, ("calibrage", "contrôle", "controle", "complémentaire")
+        )
         if provisional_chunks and scope_chunks:
             findings.append(
                 {

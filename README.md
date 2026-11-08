@@ -31,5 +31,18 @@ uv run pytest -q
 - Réponses LLM avec citations `fichier, page`.
 - Interface HTML interactive servie par FastAPI : question/réponse, citations, validation avec synthèse et détails JSON masqués par défaut, anomalies propres au dossier sélectionné.
 
+## États du dossier
+
+L'application calcule un état déterministe du dossier :
+
+- `COMPLETE` — aucune pièce manquante, aucune incohérence et aucune classification ambiguë.
+- `INCOMPLETE` — des pièces manquantes, sans incohérence ni classification ambiguë.
+- `CONFLICTING` — des incohérences détectées, sans pièce manquante ni classification ambiguë.
+- `INCOMPLETE_AND_CONFLICTING` — à la fois des pièces manquantes et des incohérences.
+- `REVIEW_REQUIRED` — au moins un document a une classification ambiguë.
+- `UNKNOWN` — aucun élément fourni pour déterminer l'état.
+
+Le badge affiché dans l'interface comporte une info-bulle au survol pour expliquer l'état courant.
+
 ## Avertissement
 Données entièrement fictives. Aucune valeur contractuelle, juridique ou probante.
