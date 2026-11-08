@@ -160,9 +160,10 @@ def ui() -> str:
       overflow-x: auto;
     }
     .anomaly-label {
+      color: #1d4ed8;
       font-style: italic;
-      color: #60a5fa;
-      font-size: smaller;
+      font-weight: 500;
+      font-size: 0.75rem;
     }
     .anomaly-category {
       display: inline-block;
@@ -174,6 +175,12 @@ def ui() -> str:
       font-style: normal;
       color: #991b1b;
       background: #fee2e2;
+    }
+    .doc-category {
+      color: #1d4ed8;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 0.75rem;
     }
     .doc-status {
       display: inline-block;
@@ -210,7 +217,7 @@ def ui() -> str:
   </div>
   <div class="card" id="anomalies-card">
     <h2>Anomalies intentionnelles à détecter</h2>
-    <p>Cette démonstration détecte et signale les catégories d'anomalies suivantes : <span class="anomaly-category">missing_documents</span>, <span class="anomaly-category">date_conflict</span>, <span class="anomaly-category">premium_status</span>, <span class="anomaly-category">amount_conflict</span>, <span class="anomaly-category">statement_conflict</span>, <span class="anomaly-category">repair_scope</span></p>
+    <p>Cette démonstration détecte et signale les catégories d'anomalies suivantes : <span class="anomaly-label">missing_documents</span>, <span class="anomaly-label">date_conflict</span>, <span class="anomaly-label">premium_status</span>, <span class="anomaly-label">amount_conflict</span>, <span class="anomaly-label">statement_conflict</span>, <span class="anomaly-label">repair_scope</span></p>
     <div id="anomalies-SIN-2026-0042" class="anomaly-block" style="display:none;">
       <h3>Dossier SIN-2026-0042 (dégât des eaux)</h3>
       <ul>
@@ -236,6 +243,12 @@ def ui() -> str:
     </div>
   </div>
   <script>
+    function esc(value) {
+      return String(value == null ? '' : value)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+    }
     async function loadClaims() {
       const response = await fetch('/claims');
       const claims = await response.json();
@@ -271,11 +284,12 @@ def ui() -> str:
       const lines = docs.map(doc => {
         const cls = (doc.metadata && doc.metadata.classification) || {};
         const status = cls.classification_status || 'clear';
+        const categoryBadge = `<span class="doc-category">${esc(doc.doc_type)}</span>`;
         const badge = `<span class="doc-status ${status}">${status}</span>`;
         const alternatives = Array.isArray(cls.alternative_types) && cls.alternative_types.length
           ? ` <span class="doc-alternatives">(alternatives : ${cls.alternative_types.join(', ')})</span>`
           : '';
-        return `<div>${doc.file_name} — <strong>${doc.doc_type}</strong>${badge}${alternatives}</div>`;
+        return `<div>${doc.file_name} (${categoryBadge})${badge}${alternatives}</div>`;
       });
       document.getElementById('documents').innerHTML = lines.join('') || 'Aucun document.';
     }
@@ -318,20 +332,22 @@ def ui() -> str:
       const claimId = document.getElementById('claim').value;
       const response = await fetch(`/claims/${claimId}/validate`);
       const data = await response.json();
+      function redBadge(category) {
+        return ' <span class="anomaly-category">' + esc(category) + '</span>';
+      }
       const lines = [];
-      lines.push('État du dossier : ' + (data.case_state || 'UNKNOWN'));
+      lines.push('État du dossier : ' + esc(data.case_state || 'UNKNOWN'));
       if (Array.isArray(data.missing_documents) && data.missing_documents.length) {
-        data.missing_documents.forEach(item => lines.push('Pièce manquante : ' + item));
+        data.missing_documents.forEach(item => lines.push('Pièce manquante : ' + esc(item) + redBadge('missing_documents')));
       } else {
         lines.push('Pièce manquante : aucune');
       }
       if (Array.isArray(data.inconsistencies) && data.inconsistencies.length) {
-        lines.push('Anomalies détectées :');
-        data.inconsistencies.forEach(item => lines.push(' - ' + (item.summary || item.category)));
+        data.inconsistencies.forEach(item => lines.push(esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
       } else {
         lines.push('Anomalies détectées : aucune');
       }
-      document.getElementById('validation-summary').textContent = lines.join('\\n');
+      document.getElementById('validation-summary').innerHTML = lines.join('\\n');
       document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
        document.getElementById('validation-card').style.display = 'block';
        document.getElementById('validate-btn').textContent = 'Masquer la validation';
