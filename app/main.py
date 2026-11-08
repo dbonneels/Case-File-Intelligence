@@ -217,8 +217,10 @@ def ui() -> str:
   <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
   <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div><button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button><pre id="validation" style="display:none;"></pre></div>
   <div class="card" id="documents-card">
-    <h2>Documents du dossier</h2>
-    <button id="download-dossier-btn" onclick="downloadDossier()" style="margin-bottom:0.75rem;">Télécharger le dossier complet</button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
+      <h2 style="margin:0;">Documents du dossier</h2>
+      <button id="download-dossier-btn" onclick="downloadDossier()" style="margin:0;">Télécharger le dossier complet</button>
+    </div>
     <div id="documents" style="white-space:pre-wrap;"></div>
   </div>
   <div class="card" id="anomalies-card">
