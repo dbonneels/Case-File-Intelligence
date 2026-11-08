@@ -215,7 +215,15 @@ def ui() -> str:
   </div>
   <div class="card" id="response-card" style="display:none;"><h2>Réponse</h2><pre id="answer"></pre></div>
   <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
-  <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div><button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button><pre id="validation" style="display:none;"></pre></div>
+  <div class="card" id="validation-card" style="display:none;">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.75rem;">
+      <h2 style="margin:0;">Validation</h2>
+      <span id="validation-state" style="font-weight:600;color:#1d4ed8;"></span>
+    </div>
+    <div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div>
+    <button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button>
+    <pre id="validation" style="display:none;"></pre>
+  </div>
   <div class="card" id="documents-card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.75rem;">
       <h2 style="margin:0;">Documents du dossier</h2>
@@ -355,17 +363,17 @@ def ui() -> str:
         return ' <span class="anomaly-category">' + esc(category) + '</span>';
       }
       const lines = [];
-      lines.push('État du dossier : ' + esc(data.case_state || 'UNKNOWN'));
       if (Array.isArray(data.missing_documents) && data.missing_documents.length) {
-        data.missing_documents.forEach(item => lines.push('Pièce manquante : ' + esc(item) + redBadge('missing_documents')));
+        data.missing_documents.forEach(item => lines.push('• Pièce manquante : ' + esc(item) + redBadge('missing_documents')));
       } else {
-        lines.push('Pièce manquante : aucune');
+        lines.push('• Pièce manquante : aucune');
       }
       if (Array.isArray(data.inconsistencies) && data.inconsistencies.length) {
-        data.inconsistencies.forEach(item => lines.push(esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
+        data.inconsistencies.forEach(item => lines.push('• ' + esc(item.summary || item.category) + redBadge(item.category || 'anomaly')));
       } else {
-        lines.push('Anomalies détectées : aucune');
+        lines.push('• Anomalies détectées : aucune');
       }
+      document.getElementById('validation-state').textContent = 'État du dossier : ' + (data.case_state || 'UNKNOWN');
       document.getElementById('validation-summary').innerHTML = lines.join('\\n');
       document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
        document.getElementById('validation-card').style.display = 'block';
