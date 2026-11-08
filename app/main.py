@@ -220,7 +220,7 @@ def ui() -> str:
       <h2 style="margin:0;">Validation</h2>
       <span style="text-align:right;">
         <span id="validation-state-label" style="font-weight:600;color:#000000;">État du dossier : </span>
-        <span id="validation-state" style="font-weight:600;color:#1d4ed8;"></span>
+        <span id="validation-state" class="doc-status" style="font-weight:600;"></span>
       </span>
     </div>
     <div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div>
@@ -376,7 +376,24 @@ def ui() -> str:
       } else {
         items.push('Anomalies détectées : aucune');
       }
-      document.getElementById('validation-state').textContent = (data.case_state || 'UNKNOWN');
+      const stateValue = document.getElementById('validation-state');
+      const currentState = data.case_state || 'UNKNOWN';
+      stateValue.textContent = currentState;
+      const stateColors = {
+        COMPLETE: { bg: '#dcfce7', color: '#166534' },
+        INCOMPLETE: { bg: '#fef3c7', color: '#92400e' },
+        CONFLICTING: { bg: '#fee2e2', color: '#991b1b' },
+        INCOMPLETE_AND_CONFLICTING: { bg: '#fee2e2', color: '#991b1b' },
+        REVIEW_REQUIRED: { bg: '#ede9fe', color: '#5b21b6' },
+        UNKNOWN: { bg: '#e5e7eb', color: '#374151' }
+      };
+      const selectedStateColor = stateColors[currentState] || stateColors.UNKNOWN;
+      stateValue.style.background = selectedStateColor.bg;
+      stateValue.style.color = selectedStateColor.color;
+      stateValue.style.display = 'inline-block';
+      stateValue.style.padding = '0.15rem 0.5rem';
+      stateValue.style.borderRadius = '999px';
+      stateValue.style.fontSize = '0.75rem';
       const list = items.map(item => '<li>' + item + '</li>').join('');
       document.getElementById('validation-summary').innerHTML = '<ul style="margin:0;padding-left:1.2rem;">' + list + '</ul>';
       document.getElementById('validation').textContent = JSON.stringify(data, null, 2);
