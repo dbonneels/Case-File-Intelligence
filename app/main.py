@@ -206,8 +206,10 @@ def ui() -> str:
       </label>
       <button id="validate-btn" onclick="toggleValidation()" style="margin:0;">Vérifier le dossier</button>
     </div>
-    <p><textarea id="question" placeholder="Question..."></textarea></p>
-    <button onclick="ask()">Demander</button>
+    <div style="display:flex;gap:0.75rem;align-items:flex-end;">
+      <textarea id="question" placeholder="Question..." style="flex:1;"></textarea>
+      <button onclick="ask()" style="margin:0;">Demander</button>
+    </div>
   </div>
   <div class="card" id="response-card" style="display:none;"><h2>Réponse</h2><pre id="answer"></pre></div>
   <div class="card" id="citations-card" style="display:none;"><h2>Citations</h2><pre id="citations"></pre></div>
