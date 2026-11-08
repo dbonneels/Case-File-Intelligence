@@ -1,14 +1,16 @@
 """FastAPI application for insurance claim RAG and validation."""
 
 
+import io
 import json
 import os
+import zipfile
 from contextlib import asynccontextmanager
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse, StreamingResponse
 from groq import Groq
 from pydantic import BaseModel, Field
 
@@ -216,6 +218,7 @@ def ui() -> str:
   <div class="card" id="validation-card" style="display:none;"><h2>Validation</h2><div id="validation-summary" style="white-space:pre-wrap;margin-bottom:0.75rem;"></div><button id="details-btn" onclick="toggleValidationDetails()">Afficher les détails</button><pre id="validation" style="display:none;"></pre></div>
   <div class="card" id="documents-card">
     <h2>Documents du dossier</h2>
+    <button id="download-dossier-btn" onclick="downloadDossier()" style="margin-bottom:0.75rem;">Télécharger le dossier complet</button>
     <div id="documents" style="white-space:pre-wrap;"></div>
   </div>
   <div class="card" id="anomalies-card">
@@ -302,6 +305,10 @@ def ui() -> str:
         return `<div>${doc.file_name} (${categoryBadge})${badge}${alternatives}</div>`;
       });
       document.getElementById('documents').innerHTML = lines.join('') || 'Aucun document.';
+    }
+    function downloadDossier() {
+      const claimId = document.getElementById('claim').value;
+      window.location.href = '/claims/' + encodeURIComponent(claimId) + '/download';
     }
     async function ask() {
       const claimId = document.getElementById('claim').value;
@@ -391,6 +398,24 @@ def list_documents(claim_id: str) -> list[dict]:
     if not docs:
         raise HTTPException(status_code=404, detail="Documents not indexed yet")
     return docs
+
+
+@app.get("/claims/{claim_id}/download")
+def download_claim(claim_id: str) -> StreamingResponse:
+    directory = claim_dir(claim_id)
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+        for path in sorted(directory.rglob("*")):
+            if path.is_file():
+                archive.write(path, arcname=path.relative_to(directory))
+    buffer.seek(0)
+
+    filename = f"{claim_id}.zip"
+    return StreamingResponse(
+        buffer,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
 
 
 @app.get("/claims/{claim_id}/validate")
